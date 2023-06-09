@@ -144,7 +144,11 @@ extension SessionManager: BADownloadManagerDelegate {
                   didWriteBytes bytesWritten: Int64,
                   totalBytesWritten: Int64,
                   totalBytesExpectedToWrite totalExpectedBytes: Int64) {
-        
+        // Ignore `BAManifestURL` downloads while handling progress.
+        guard type(of: download) == BAURLDownload.self else {
+            return
+        }
+
         guard let session = self.manifest.session(for: download.identifier) else {
             Logger.app.warning("Unknown download: \(download.identifier)")
             return
@@ -174,6 +178,14 @@ extension SessionManager: BADownloadManagerDelegate {
     }
     
     func download(_ download: BADownload, failedWithError error: Error) {
+        // If the `BAManifestURL` fails to download, the BADownloadManager's delegate is notified about it.
+        // The type of the manifest is not a `BAURLDownload`, therefore you can key off of
+        // the download's type to filter it out.
+        guard type(of: download) == BAURLDownload.self else {
+            Logger.app.warning("Download of unsupported type failed: \(download.identifier). \(error)")
+            return
+        }
+
         guard self.manifest.session(for: download.identifier) != nil else {
             Logger.app.warning("Unknown download: \(download.identifier)")
             return

@@ -66,7 +66,7 @@ struct BackgroundDownloadHandler: BADownloaderExtension {
         // If the `BAManifestURL` fails to download, the extension is notified about it.
         // The type of the manifest is not a `BAURLDownload`, therefore you can key off of
         // the download's type to filter it out.
-        guard failedDownload.self === BAURLDownload.self else {
+        guard type(of: failedDownload) == BAURLDownload.self else {
             Logger.ext.warning("Download of unsupported type failed: \(failedDownload.identifier). \(error)")
             return
         }
